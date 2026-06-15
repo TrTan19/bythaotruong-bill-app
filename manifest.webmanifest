@@ -1,0 +1,25 @@
+{
+  "name": "ByThaoTruong Makeup Bill",
+  "short_name": "ByThaoTruong",
+  "description": "Ứng dụng tính tiền và xuất hóa đơn cho ByThaoTruong Makeup.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff7fa",
+  "theme_color": "#fff7fa",
+  "lang": "vi",
+  "icons": [
+    {
+      "src": "./assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

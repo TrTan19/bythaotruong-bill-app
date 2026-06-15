@@ -1,0 +1,289 @@
+﻿<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fff7fa" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ByThaoTruong Makeup" />
+    <title>ByThaoTruong Makeup - Tính hóa đơn</title>
+    <script>
+      // Gỡ mọi Service Worker cũ + xóa cache để mỗi lần refresh là bản mới nhất.
+      (function () {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function (regs) {
+            regs.forEach(function (reg) { reg.unregister(); });
+          });
+        }
+        if (window.caches && caches.keys) {
+          caches.keys().then(function (keys) {
+            keys.forEach(function (k) { caches.delete(k); });
+          });
+        }
+      })();
+    </script>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet" />
+    <link rel="apple-touch-icon" href="./assets/icon-192.png" />
+    <link rel="stylesheet" href="./styles.css?v=22" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="topbar" aria-label="Thanh công cụ">
+        <div class="brand-block">
+          <div class="brand-art" aria-hidden="true">
+            <img src="./assets/bow-pattern.png" alt="" />
+          </div>
+          <div>
+            <p class="eyebrow">Makeup & Bridal Service</p>
+            <h1>ByThaoTruong Makeup</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button class="icon-button ghost" id="save-state" type="button" title="Lưu dữ liệu">
+            <span class="icon" data-icon="save"></span>
+            <span>Lưu</span>
+          </button>
+          <button class="icon-button ghost" id="reset-state" type="button" title="Về mẫu mặc định">
+            <span class="icon" data-icon="rotate"></span>
+            <span>Reset</span>
+          </button>
+          <button class="icon-button primary" id="print-bill" type="button" title="In hoặc lưu PDF">
+            <span class="icon" data-icon="printer"></span>
+            <span>In hóa đơn</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="workspace">
+        <nav class="app-sidebar" aria-label="Điều hướng">
+          <button class="sidebar-btn active" data-tab="client" type="button" title="Thông tin khách">
+            <span class="icon" data-icon="user"></span>
+            <span>Khách</span>
+          </button>
+          <button class="sidebar-btn" data-tab="services" type="button" title="Dịch vụ và chia team">
+            <span class="icon" data-icon="list"></span>
+            <span>Dịch vụ</span>
+          </button>
+          <button class="sidebar-btn" data-tab="bill" type="button" title="Hóa đơn">
+            <span class="icon" data-icon="receipt"></span>
+            <span>Hóa đơn</span>
+          </button>
+          <button class="sidebar-btn" data-tab="history" type="button" title="Lịch sử khách">
+            <span class="icon" data-icon="clock"></span>
+            <span>Lịch sử</span>
+          </button>
+          <button class="sidebar-btn sidebar-settings-btn" data-tab="settings" type="button" title="Cài đặt QR">
+            <span class="icon" data-icon="settings"></span>
+            <span>Cài đặt</span>
+          </button>
+        </nav>
+
+        <div class="input-stack">
+          <form class="panel form-grid tab-panel" id="client-form" data-panel="client">
+            <div class="panel-heading">
+              <div class="step-title">
+                <span class="step-badge">1</span>
+                <h2>Thông tin khách</h2>
+              </div>
+            </div>
+            <label class="ac-wrap">
+              Tên khách hàng
+              <input name="customerName" autocomplete="off" placeholder="Tên khách" />
+            </label>
+            <label class="ac-wrap">
+              Số điện thoại
+              <input name="customerPhone" autocomplete="off" placeholder="SĐT / Zalo" />
+            </label>
+            <label class="wide">
+              Địa chỉ làm việc
+              <input name="customerAddress" autocomplete="street-address" placeholder="Địa chỉ / khách sạn / nơi làm" />
+            </label>
+            <label>
+              Thời gian hẹn
+              <input name="eventAt" type="datetime-local" />
+            </label>
+            <label>
+              Ngày lập hóa đơn
+              <input name="invoiceAt" type="datetime-local" />
+            </label>
+            <label class="wide">
+              Ghi chú
+              <textarea name="customerNote" rows="2" placeholder="Ghi chú riêng cho đơn này"></textarea>
+            </label>
+          </form>
+
+          <div class="panel history-panel tab-panel" id="history-panel" data-panel="history">
+            <div class="history-panel-heading">
+              <span class="icon" data-icon="clock"></span>
+              <span>Lịch sử khách hàng</span>
+              <span class="history-count" id="history-count"></span>
+            </div>
+            <div class="history-body" id="history-body"></div>
+          </div>
+
+          <section class="panel service-panel tab-panel" id="service-section" data-panel="services">
+            <div class="panel-heading">
+              <div class="step-title">
+                <span class="step-badge">2</span>
+                <h2>Dịch vụ và phụ phí</h2>
+              </div>
+              <div class="inline-actions service-add">
+                <select id="service-picker" aria-label="Chọn dịch vụ"></select>
+                <button class="icon-button primary" id="add-service" type="button" title="Thêm dịch vụ">
+                  <span class="icon" data-icon="plus"></span>
+                  <span>Thêm dòng</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="price-toolbar" id="quick-services" aria-label="Bảng giá nhanh"></div>
+
+            <datalist id="team-names"></datalist>
+
+            <div class="table-wrap">
+              <table class="line-table">
+                <thead>
+                  <tr>
+                    <th>Nội dung</th>
+                    <th>SL</th>
+                    <th>Đơn giá</th>
+                    <th>Loại</th>
+                    <th>Người làm</th>
+                    <th>Tiền trả</th>
+                    <th>Thành tiền</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="line-body"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel split-panel tab-panel" id="split-section" data-panel="services">
+            <div class="panel-heading">
+              <div class="step-title">
+                <span class="step-badge">3</span>
+                <h2>Chia tiền team</h2>
+              </div>
+              <label class="checkbox-line">
+                <input id="show-split-on-print" type="checkbox" />
+                In kèm bảng chia nội bộ
+              </label>
+            </div>
+            <p class="payout-hint">Tiền chia tự cộng theo cột "Người làm" và "Tiền trả" ở bảng dịch vụ phía trên.</p>
+            <div class="payout-summary" id="payout-summary"></div>
+          </section>
+
+          <form class="panel settings-grid tab-panel" id="business-form" data-panel="settings">
+            <div class="panel-heading">
+              <div class="step-title">
+                <span class="step-badge">QR</span>
+                <h2>Cài đặt hóa đơn và QR</h2>
+              </div>
+              <button class="icon-button ghost" id="download-json" type="button" title="Tải dữ liệu">
+                <span class="icon" data-icon="download"></span>
+                <span>JSON</span>
+              </button>
+            </div>
+            <label>
+              Tên shop
+              <input name="brandName" />
+            </label>
+            <label>
+              Phone/Zalo
+              <input name="brandPhone" />
+            </label>
+            <label class="wide">
+              Địa chỉ shop
+              <input name="brandAddress" />
+            </label>
+            <label class="wide">
+              Facebook
+              <input name="brandFacebook" />
+            </label>
+            <label>
+              Mã ngân hàng VietQR
+              <input name="bankBin" />
+            </label>
+            <label>
+              Số tài khoản
+              <input name="bankAccount" />
+            </label>
+            <label class="wide">
+              Tên tài khoản
+              <input name="bankAccountName" />
+            </label>
+            <label>
+              Mã khách hàng QR
+              <input name="merchantCode" />
+            </label>
+            <label class="wide">
+              Link ảnh QR tùy chọn
+              <input name="qrUrl" placeholder="https://..." />
+            </label>
+            <label class="file-box wide">
+              Upload ảnh QR
+              <input id="qr-upload" type="file" accept="image/*" />
+              <span id="qr-upload-name">Chưa chọn file</span>
+            </label>
+          </form>
+        </div>
+
+        <aside class="side-stack" id="bill-section">
+          <section class="panel summary-panel">
+            <div class="panel-heading">
+              <div class="step-title">
+                <span class="step-badge">4</span>
+                <h2>Tổng tiền</h2>
+              </div>
+              <span class="pill" id="invoice-no-pill"></span>
+            </div>
+            <div class="summary-total">
+              <span>Khách cần thanh toán</span>
+              <strong id="grand-total-label">0 đ</strong>
+            </div>
+            <div class="totals-strip">
+              <span>Tạm tính <strong id="subtotal-label">0 đ</strong></span>
+              <span>Trả team <strong id="makeup-base-label">0 đ</strong></span>
+              <span>Shop giữ <strong id="hair-base-label">0 đ</strong></span>
+            </div>
+            <div class="summary-actions">
+              <button class="icon-button" id="download-bill" type="button" title="Lưu hóa đơn dạng PDF">
+                <span class="icon" data-icon="file-down"></span>
+                <span>Lưu PDF</span>
+              </button>
+              <button class="icon-button primary" id="print-bill-bottom" type="button" title="In hoặc lưu PDF">
+                <span class="icon" data-icon="printer"></span>
+                <span>In hóa đơn</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="panel preview-panel">
+            <div class="panel-heading">
+              <div class="step-title">
+                <span class="step-badge">HĐ</span>
+                <h2>Xem trước</h2>
+              </div>
+            </div>
+            <div id="print-area"></div>
+          </section>
+        </aside>
+      </section>
+    </main>
+
+    <script src="./app.js?v=22"></script>
+  </body>
+</html>
+
+
+
+
+
+
+
+
+
+

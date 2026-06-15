@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: bythaotruong-bill-app
+    runtime: static
+    staticPublishPath: .
+    pullRequestPreviewsEnabled: false
+    headers:
+      # Buộc trình duyệt kiểm tra server mỗi lần -> refresh luôn ra bản mới nhất
+      - path: /*
+        name: Cache-Control
+        value: "no-cache, must-revalidate"
